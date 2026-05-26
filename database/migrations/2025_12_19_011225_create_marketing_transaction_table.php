@@ -11,51 +11,97 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('inventory_marketing_tag', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->string('name');
-        //     $table->timestamps();
-        // });
-
-        Schema::create('inventory_marketing_category', function (Blueprint $table) {
+        Schema::create('inventory_marketing_transaction_purpose', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->timestamps();
-        });
-        Schema::create('inventory_marketing_items', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('asset_running_number')->unique();
-            $table->text('asset_description')->nullable();
-            $table->string('asset_type')->nullable();
-            $table->foreignId('asset_category_id')->constrained('assets_category')->cascadeOnDelete();
-            //$table->foreignId('asset_tag_id')->nullable()->constrained('assets_tag')->cascadeOnDelete();
-            $table->unsignedInteger('asset_stable_unit')->default(0);
-            $table->decimal('asset_purchase_cost', 12, 4)->nullable();
-            $table->decimal('asset_sales_cost', 12, 4)->nullable();
-            $table->string('asset_unit_measure');
-            $table->string('asset_image')->nullable();
-            $table->text('assets_remark')->nullable();
-            $table->json('assets_log')->nullable();
+            $table->string('transaction_purpose_name');
             $table->timestamps();
         });
 
-        Schema::create('marketing_item_values', function (Blueprint $table) {
+        Schema::create('inventory_marketing_purchase_orders', function (Blueprint $table) {
             $table->id();
+            $table->string('running_number')->unique();
+            $table->unsignedBigInteger('supplier_id')->nullable();
+            $table->foreign('supplier_id')->references('id')->on('suppliers')->nullOnDelete();
+
+            $table->enum('transaction_type', ['STOCK IN', 'STOCK OUT', 'STOCK TRANSFER']);
+            $table->string('recipient_name')->nullable();
+            $table->foreignId('shipping_option_id')->nullable()->constrained('shipping_option')->nullOnDelete();
+
+            // STATUS only relevant for ASSET TRANSFER
+            $table->enum('transaction_status', ['REQUESTED', 'REJECTED', 'APPROVED', 'IN-TRANSIT', 'RECEIVED', 'IN PROGRESS', 'COMPLETED'])->nullable();
+
+            // PURPOSE: allow multiple purposes (JSON)
+            $table->foreignId('transaction_purpose_id')->nullable()->constrained('assets_transaction_purpose')->nullOnDelete();
+
+            $table->foreignId('from_branch_id')->nullable()->constrained('branches')->cascadeOnDelete();
+            $table->foreignId('to_branch_id')->nullable()->constrained('branches')->cascadeOnDelete();
+            $table->text('transaction_remark')->nullable();
+            $table->json('transaction_log')->nullable();
+            $table->decimal('transaction_total_cost', 12, 2)->nullable();
+
+            // Trackers
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('received_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('rejected_by')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
+            $table->dateTime('received_at')->nullable();
+            $table->dateTime('approved_at')->nullable();
+            $table->dateTime('rejected_at')->nullable();
+        });
+
+        Schema::create('inventory_marketing_transactions', function (Blueprint $table) {
+            $table->id();
+            $table->string('running_number')->unique();
+            $table->unsignedBigInteger('supplier_id')->nullable();
+            $table->foreign('supplier_id')->references('id')->on('suppliers')->nullOnDelete();
+
+            $table->enum('transaction_type', ['STOCK IN', 'STOCK OUT', 'STOCK TRANSFER']);
+            $table->string('recipient_name')->nullable();
+            $table->foreignId('shipping_option_id')->nullable()->constrained('shipping_option')->nullOnDelete();
+
+            // STATUS only relevant for ASSET TRANSFER
+            $table->enum('transaction_status', ['REQUESTED', 'REJECTED', 'APPROVED', 'IN-TRANSIT', 'RECEIVED', 'IN PROGRESS', 'COMPLETED'])->nullable();
+
+            // PURPOSE: allow multiple purposes (JSON)
+            $table->foreignId('transaction_purpose_id')->nullable()->constrained('assets_transaction_purpose')->nullOnDelete();
+
+            $table->foreignId('from_branch_id')->nullable()->constrained('branches')->cascadeOnDelete();
+            $table->foreignId('to_branch_id')->nullable()->constrained('branches')->cascadeOnDelete();
+            $table->text('transaction_remark')->nullable();
+            $table->json('transaction_log')->nullable();
+            $table->decimal('transaction_total_cost', 12, 2)->nullable();
+
+            // Trackers
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('received_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('rejected_by')->nullable()->constrained('users')->nullOnDelete();
+
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
+            $table->dateTime('received_at')->nullable();
+            $table->dateTime('approved_at')->nullable();
+            $table->dateTime('rejected_at')->nullable();
+        });
+
+        Schema::create('inventory_marketing_transaction_item_list', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('transaction_id')->nullable()->constrained('inventory_marketing_transactions')->cascadeOnDelete();
+            $table->foreignId('purchase_order_id')->nullable()->constrained('purchase_order')->cascadeOnDelete();
             $table->foreignId('asset_id')->constrained('assets')->cascadeOnDelete();
-            $table->foreignId('asset_branch_id')->constrained('assets_branch')->cascadeOnDelete();
-            $table->string('asset_rack_no')->nullable();
-            $table->unique(['asset_id', 'asset_branch_id']);
-            $table->foreignId('asset_location_id')->nullable()->constrained('assets_branch')->cascadeOnDelete();
-            $table->unsignedInteger('asset_current_unit')->default(0);
+            $table->enum('status', ['ON HOLD', 'DELIVERED', 'FROZEN', 'RECEIVED', 'RETURNED', 'DISPOSED'])->nullable();
+            $table->integer('asset_unit');
+            $table->timestamps();
         });
     }
 
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
-
-    }
+    public function down(): void {}
 };
