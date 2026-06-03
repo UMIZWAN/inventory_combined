@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Marketing;
 
-use App\Models\AssetAccessLevel;
+use App\Http\Controllers\Controller;
+use App\Models\MarketingAccessLevel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class AssetAccessLevelController extends Controller
+class MarketingAccessLevelController extends Controller
 {
     /**
      * Display a listing of access levels
@@ -17,18 +18,20 @@ class AssetAccessLevelController extends Controller
             return redirect('/login');
         }
 
-        $query = AssetAccessLevel::withCount('users');
+        $query = MarketingAccessLevel::withCount('users');
 
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where('name', 'LIKE', "%{$search}%");
+        if ($request->filled('search')) {
+            $query->where('name', 'LIKE', '%' . $request->search . '%');
         }
 
         $accessLevels = $query->orderByRaw('COALESCE(sort_order, 9999) ASC, id ASC')->get();
-        $permissions = AssetAccessLevel::getPermissionFields();
+        $permissions  = MarketingAccessLevel::getPermissionFields();
 
-        return view('access_levels.index', compact('accessLevels', 'permissions'));
+        return view('access_levels.index', [
+            'accessLevels' => $accessLevels,
+            'permissions'  => $permissions,
+            'module'       => 'marketing',
+        ]);
     }
 
     /**
@@ -37,17 +40,16 @@ class AssetAccessLevelController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:inventory_asset_access_level,name',
+            'name' => 'required|string|max:255|unique:inventory_marketing_access_level,name',
         ]);
 
         $data = ['name' => $request->name];
 
-        // Add all permission fields
-        foreach (array_keys(AssetAccessLevel::getPermissionFields()) as $field) {
+        foreach (array_keys(MarketingAccessLevel::getPermissionFields()) as $field) {
             $data[$field] = $request->has($field) ? true : false;
         }
 
-        AssetAccessLevel::create($data);
+        MarketingAccessLevel::create($data);
 
         return redirect()->back()->with('success', 'Access level created successfully!');
     }
@@ -57,16 +59,15 @@ class AssetAccessLevelController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $accessLevel = AssetAccessLevel::findOrFail($id);
+        $accessLevel = MarketingAccessLevel::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255|unique:inventory_asset_access_level,name,' . $id,
+            'name' => 'required|string|max:255|unique:inventory_marketing_access_level,name,' . $id,
         ]);
 
         $data = ['name' => $request->name];
 
-        // Update all permission fields
-        foreach (array_keys(AssetAccessLevel::getPermissionFields()) as $field) {
+        foreach (array_keys(MarketingAccessLevel::getPermissionFields()) as $field) {
             $data[$field] = $request->has($field) ? true : false;
         }
 
@@ -80,11 +81,13 @@ class AssetAccessLevelController extends Controller
      */
     public function destroy($id)
     {
-        $accessLevel = AssetAccessLevel::findOrFail($id);
+        $accessLevel = MarketingAccessLevel::findOrFail($id);
 
-        // Check if any users are assigned to this access level
         if ($accessLevel->users()->count() > 0) {
-            return redirect()->back()->with('error', 'Cannot delete access level. It is assigned to ' . $accessLevel->users()->count() . ' user(s).');
+            return redirect()->back()->with(
+                'error',
+                'Cannot delete access level. It is assigned to ' . $accessLevel->users()->count() . ' user(s).'
+            );
         }
 
         $accessLevel->delete();
@@ -97,10 +100,13 @@ class AssetAccessLevelController extends Controller
      */
     public function reorder(Request $request)
     {
-        $request->validate(['ids' => 'required|array', 'ids.*' => 'exists:inventory_asset_access_level,id']);
+        $request->validate([
+            'ids'   => 'required|array',
+            'ids.*' => 'exists:inventory_marketing_access_level,id',
+        ]);
 
         foreach ($request->ids as $order => $id) {
-            AssetAccessLevel::where('id', $id)->update(['sort_order' => $order + 1]);
+            MarketingAccessLevel::where('id', $id)->update(['sort_order' => $order + 1]);
         }
 
         return response()->json(['success' => true]);
@@ -111,7 +117,7 @@ class AssetAccessLevelController extends Controller
      */
     public function duplicate($id)
     {
-        $accessLevel = AssetAccessLevel::findOrFail($id);
+        $accessLevel = MarketingAccessLevel::findOrFail($id);
 
         $newAccessLevel = $accessLevel->replicate();
         $newAccessLevel->name = $accessLevel->name . ' (Copy)';

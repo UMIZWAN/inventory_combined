@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Asset;
 
+use App\Http\Controllers\Controller;
 use App\Models\AmsForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;

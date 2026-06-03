@@ -1,10 +1,31 @@
+@php
+    $module ??= 'asset';
+    $moduleConfig = [
+        'asset' => [
+            'title'         => 'AMS - Asset Management System',
+            'brand'         => 'ASSET MANAGEMENT SYSTEM',
+            'sidebar'       => 'layouts.asset-sidebar',
+            'accent'        => 'indigo',
+            'home_url'      => '/asset',
+        ],
+        'marketing' => [
+            'title'         => 'MIS - Marketing Inventory System',
+            'brand'         => 'MARKETING INVENTORY SYSTEM',
+            'sidebar'       => 'layouts.marketing-sidebar',
+            'accent'        => 'emerald',
+            'home_url'      => '/marketing',
+        ],
+    ][$module];
+
+    $accent = $moduleConfig['accent'];
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AMS - Asset Management System</title>
+    <title>{{ $moduleConfig['title'] }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {{-- Tailwind CDN --}}
@@ -36,9 +57,9 @@
             background: white;
         }
         .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #4f46e5 !important;
+            background: {{ $accent === 'emerald' ? '#059669' : '#4f46e5' }} !important;
             color: white !important;
-            border-color: #4f46e5;
+            border-color: {{ $accent === 'emerald' ? '#059669' : '#4f46e5' }};
         }
         .dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) {
             background: #f3f4f6 !important;
@@ -75,9 +96,20 @@
         {{-- ================= TOPBAR ================= --}}
         <header
             class="bg-gradient-to-r from-slate-50 to-white px-6 py-3.5 shadow-lg flex justify-between items-center border-b border-gray-200">
-            <a href="/" class="text-l font-bold text-gray-800 hover:text-indigo-600 transition-colors">
-                ASSET MANAGEMENT SYSTEM
-            </a>
+            <div class="flex items-center gap-3">
+                <a href="/" title="Back to Home"
+                    class="text-gray-500 hover:text-{{ $accent }}-600 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </a>
+                <a href="{{ $moduleConfig['home_url'] }}"
+                    class="text-l font-bold text-gray-800 hover:text-{{ $accent }}-600 transition-colors">
+                    {{ $moduleConfig['brand'] }}
+                </a>
+            </div>
 
             <div id="current-time" class="text-sm text-gray-600 font-medium">
                 <span id="time-display"></span>
@@ -88,7 +120,7 @@
 
                     {{-- Profile Trigger --}}
                     <button id="profile-trigger"
-                        class="text-sm text-gray-700 hover:text-indigo-600 font-medium transition-colors">
+                        class="text-sm text-gray-700 hover:text-{{ $accent }}-600 font-medium transition-colors">
                         {{ auth()->user()->name }}
                     </button>
 
@@ -115,7 +147,7 @@
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
                                             <input type="text" name="name"
                                                 value="{{ old('name', auth()->user()->name) }}"
-                                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500"
                                                 required>
                                         </div>
 
@@ -126,10 +158,17 @@
                                                 class="w-full px-4 py-2 bg-gray-100 rounded-md" disabled>
                                         </div>
 
-                                        {{-- Access Level --}}
+                                        {{-- Asset Access Level --}}
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Access Level</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Asset Access Level</label>
                                             <input type="text" value="{{ auth()->user()->accessLevel->name ?? 'None' }}"
+                                                class="w-full px-4 py-2 bg-gray-100 rounded-md" disabled>
+                                        </div>
+
+                                        {{-- Marketing Access Level --}}
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Marketing Access Level</label>
+                                            <input type="text" value="{{ auth()->user()->marketingAccessLevel->name ?? 'None' }}"
                                                 class="w-full px-4 py-2 bg-gray-100 rounded-md" disabled>
                                         </div>
 
@@ -157,7 +196,7 @@
                                                 Cancel
                                             </button>
                                             <button type="submit"
-                                                class="px-5 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+                                                class="px-5 py-2 bg-{{ $accent }}-600 text-white rounded-md hover:bg-{{ $accent }}-700">
                                                 Update Profile
                                             </button>
                                         </div>
@@ -190,7 +229,7 @@
             {{-- Sidebar --}}
             <aside class="w-64 bg-gray-100">
                 <div class="px-0 py-0">
-                    @include('layouts.sidebar')
+                    @include($moduleConfig['sidebar'])
                 </div>
             </aside>
 

@@ -1,4 +1,26 @@
-@extends('layouts.app')
+@php
+    $module ??= 'asset';
+
+    if ($module === 'marketing') {
+        $accent         = 'emerald';
+        $accentHex      = '#059669';
+        $accentBgLight  = '#ecfdf5';
+        $accentHexLight = '#a7f3d0';
+        $accentRing     = 'rgba(16, 185, 129, 0.1)';
+        $canEdit        = auth()->user()?->marketingAccessLevel?->add_edit_branch;
+        $basePath       = '/marketing/branches';
+    } else {
+        $accent         = 'indigo';
+        $accentHex      = '#4f46e5';
+        $accentBgLight  = '#eef2ff';
+        $accentHexLight = '#c7d2fe';
+        $accentRing     = 'rgba(129, 140, 248, 0.1)';
+        $canEdit        = auth()->user()?->accessLevel?->add_edit_branch;
+        $basePath       = '/branches';
+    }
+@endphp
+
+@extends('layouts.app', ['module' => $module])
 
 @section('content')
     <div class="px-4">
@@ -10,9 +32,9 @@
                     <h3 class="ml-2 text-xl font-semibold text-gray-800">Branches</h3>
                     <p class="ml-2 mt-1 text-sm text-gray-500">Manage branch list.</p>
                 </div>
-                @if (auth()->user()->accessLevel?->add_edit_branch)
+                @if ($canEdit)
                     <button id="add-branch-trigger"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-{{ $accent }}-600 text-white text-sm font-medium rounded-lg hover:bg-{{ $accent }}-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
@@ -49,10 +71,10 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    @if (auth()->user()->accessLevel?->add_edit_branch)
+                                    @if ($canEdit)
                                         <div class="flex items-center gap-2">
                                             <button
-                                                class="edit-branch-btn inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                                class="edit-branch-btn inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-{{ $accent }}-700 bg-{{ $accent }}-50 rounded-md hover:bg-{{ $accent }}-100 transition-colors"
                                                 data-id="{{ $branch->id }}" data-name="{{ $branch->branch_name }}"
                                                 data-code="{{ $branch->code }}">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor"
@@ -64,7 +86,7 @@
                                                 Edit
                                             </button>
 
-                                            <form method="POST" action="{{ url('/branches/' . $branch->id) }}"
+                                            <form method="POST" action="{{ url($basePath . '/' . $branch->id) }}"
                                                 class="inline">
                                                 @csrf
                                                 @method('DELETE')
@@ -101,8 +123,8 @@
                 {{-- Modal Header --}}
                 <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="w-10 h-10 bg-{{ $accent }}-100 rounded-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 text-{{ $accent }}-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
                                 </path>
@@ -119,7 +141,7 @@
                 </div>
 
                 {{-- Modal Form --}}
-                <form id="branch-form" method="POST" action="{{ url('/branches') }}">
+                <form id="branch-form" method="POST" action="{{ url($basePath) }}">
                     @csrf
                     @method('POST')
 
@@ -130,7 +152,7 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Branch Name <span
                                     class="text-red-500">*</span></label>
                             <input name="branch_name" id="branch-name" required
-                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-{{ $accent }}-500 focus:border-transparent transition-all"
                                 placeholder="Enter branch name">
                         </div>
 
@@ -138,7 +160,7 @@
                             <label class="block text-sm font-semibold text-gray-700 mb-2">Code <span
                                     class="text-red-500">*</span></label>
                             <input name="code" id="branch-code" required
-                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-{{ $accent }}-500 focus:border-transparent transition-all"
                                 placeholder="Enter branch code">
                         </div>
                     </div>
@@ -150,7 +172,7 @@
                             Cancel
                         </button>
                         <button type="submit" id="branch-submit"
-                            class="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition-colors shadow-sm hover:shadow-md">
+                            class="px-5 py-2.5 bg-{{ $accent }}-600 text-white font-medium rounded-lg hover:bg-{{ $accent }}-700 transition-colors shadow-sm hover:shadow-md">
                             Add Branch
                         </button>
                     </div>
@@ -164,104 +186,59 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
     <style>
-        /* DataTables Length (Show entries) Styling */
-        .dataTables_wrapper .dataTables_length {
-            margin-bottom: 1rem;
-        }
-
+        .dataTables_wrapper .dataTables_length { margin-bottom: 1rem; }
         .dataTables_wrapper .dataTables_length label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #4b5563;
-            display: flex;
-            align-items: center;
-            gap: 0 rem;
+            font-size: 0.875rem; font-weight: 600; color: #4b5563;
+            display: flex; align-items: center; gap: 0rem;
         }
-
         .dataTables_wrapper .dataTables_length select {
-            margin: 0 0.5rem;
-            padding: 0.5rem 2rem 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            outline: none;
+            margin: 0 0.5rem; padding: 0.5rem 2rem 0.5rem 0.75rem;
+            border: 1px solid #d1d5db; border-radius: 0.5rem;
+            font-size: 0.875rem; transition: all 0.2s; outline: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
             background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.25rem;
-            appearance: none;
+            background-repeat: no-repeat; background-size: 1.25rem; appearance: none;
         }
-
         .dataTables_wrapper .dataTables_length select:focus {
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+            border-color: {{ $accentHexLight }};
+            box-shadow: 0 0 0 3px {{ $accentRing }};
         }
-
-        /* DataTables Search Styling */
-        .dataTables_wrapper .dataTables_filter {
-            margin-bottom: 1rem;
-        }
-
+        .dataTables_wrapper .dataTables_filter { margin-bottom: 1rem; }
         .dataTables_wrapper .dataTables_filter label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #4b5563;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            font-size: 0.875rem; font-weight: 600; color: #4b5563;
+            display: flex; align-items: center; gap: 0.75rem;
         }
-
         .dataTables_wrapper .dataTables_filter input {
-            margin-left: 0;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            outline: none;
+            margin-left: 0; padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db; border-radius: 0.5rem;
+            font-size: 0.875rem; transition: all 0.2s; outline: none;
         }
-
         .dataTables_wrapper .dataTables_filter input:focus {
-            border-color: #818cf8;
-            ring: 2px;
-            ring-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+            border-color: {{ $accentHexLight }};
+            box-shadow: 0 0 0 3px {{ $accentRing }};
         }
-
-        /* DataTables Info and Pagination Styling */
         .dataTables_wrapper .dataTables_info {
-            font-size: 0.875rem;
-            color: #6b7280;
-            padding-top: 1rem;
+            font-size: 0.875rem; color: #6b7280; padding-top: 1rem;
         }
-
-        .dataTables_wrapper .dataTables_paginate {
-            padding-top: 1rem;
-        }
-
+        .dataTables_wrapper .dataTables_paginate { padding-top: 1rem; }
         .dataTables_wrapper .dataTables_paginate .paginate_button {
-            padding: 0.375rem 0.75rem;
-            margin: 0 0.125rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
+            padding: 0.375rem 0.75rem; margin: 0 0.125rem;
+            border-radius: 0.375rem; font-size: 0.875rem; transition: all 0.2s;
         }
-
         .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #4f46e5 !important;
+            background: {{ $accentHex }} !important;
             color: white !important;
-            border: 1px solid #4f46e5 !important;
+            border: 1px solid {{ $accentHex }} !important;
         }
-
         .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: #eef2ff !important;
-            color: #4f46e5 !important;
-            border: 1px solid #c7d2fe !important;
+            background: {{ $accentBgLight }} !important;
+            color: {{ $accentHex }} !important;
+            border: 1px solid {{ $accentHexLight }} !important;
         }
     </style>
 
     <script>
+        const branchBasePath = @json($basePath);
         const modal = document.getElementById('branch-modal');
         const openBtn = document.getElementById('add-branch-trigger');
         const closeBtns = [
@@ -277,7 +254,7 @@
         if (openBtn) {
             openBtn.addEventListener('click', () => {
                 form.reset();
-                form.action = '/branches';
+                form.action = branchBasePath;
                 title.textContent = 'Add Branch';
                 submitBtn.textContent = 'Add Branch';
                 modal.classList.remove('hidden');
@@ -301,7 +278,7 @@
                 const name = btn.dataset.name;
                 const code = btn.dataset.code;
 
-                form.action = `/branches/${id}`;
+                form.action = `${branchBasePath}/${id}`;
                 title.textContent = 'Edit Branch';
                 submitBtn.textContent = 'Update Branch';
 

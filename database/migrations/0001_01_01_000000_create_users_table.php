@@ -39,6 +39,7 @@ return new class extends Migration
         Schema::create('inventory_marketing_access_level', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->boolean('settings')->default(false);
             // Role
             $table->boolean('add_edit_role')->default(false);
             $table->boolean('view_role')->default(false);
@@ -57,6 +58,7 @@ return new class extends Migration
             $table->boolean('view_transaction')->default(false);
             $table->boolean('approve_reject_transaction')->default(false);
             $table->boolean('receive_transaction')->default(false);
+            $table->boolean('amend_asset')->default(false);
             // Purchase Order
             $table->boolean('add_edit_purchase_order')->default(false);
             $table->boolean('view_purchase_order')->default(false);
@@ -69,6 +71,7 @@ return new class extends Migration
             // Reports
             $table->boolean('view_reports')->default(false);
             $table->boolean('download_reports')->default(false);
+            $table->integer('sort_order')->nullable();
             $table->timestamps();
         });
 

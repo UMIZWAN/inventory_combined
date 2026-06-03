@@ -1,6 +1,44 @@
 <!-- resources/views/staff/staffList.blade.php -->
 
-@extends('layouts.app')
+@php
+    $module ??= 'asset';
+
+    if ($module === 'marketing') {
+        $accent             = 'emerald';
+        $accentHex          = '#059669';
+        $accentBgLight      = '#ecfdf5';
+        $accentHexLight     = '#a7f3d0';
+        $accentRing         = 'rgba(16, 185, 129, 0.1)';
+        $canEdit            = auth()->user()?->marketingAccessLevel?->add_edit_user;
+        $accessColumn       = 'marketing_access_level_id';
+        $accessRelation     = 'marketingAccessLevel';
+        $routes = [
+            'register'        => 'marketingStaff.register',
+            'registerNoLogin' => 'marketingStaff.registerNoLogin',
+            'toggleStatus'    => 'marketingStaff.toggleStatus',
+        ];
+        $basePath           = '/marketing/staff';
+        $profileLinkUrl     = null; // no per-user listing on marketing side yet
+    } else {
+        $accent             = 'indigo';
+        $accentHex          = '#4f46e5';
+        $accentBgLight      = '#eef2ff';
+        $accentHexLight     = '#c7d2fe';
+        $accentRing         = 'rgba(129, 140, 248, 0.1)';
+        $canEdit            = auth()->user()?->accessLevel?->add_edit_user;
+        $accessColumn       = 'asset_access_level_id';
+        $accessRelation     = 'accessLevel';
+        $routes = [
+            'register'        => 'staff.register',
+            'registerNoLogin' => 'staff.registerNoLogin',
+            'toggleStatus'    => 'staff.toggleStatus',
+        ];
+        $basePath           = '/staff';
+        $profileLinkUrl     = url('/asset');
+    }
+@endphp
+
+@extends('layouts.app', ['module' => $module])
 
 @section('content')
     <div class="px-4">
@@ -20,7 +58,7 @@
                         </svg>
                         Export CSV
                     </button>
-                    @if (auth()->user()->accessLevel?->add_edit_user)
+                    @if ($canEdit)
                         <button id="add-nologin-trigger"
                             class="inline-flex items-center gap-2 px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -29,7 +67,7 @@
                             Add Staff (No Login)
                         </button>
                         <button id="add-staff-trigger"
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-{{ $accent }}-600 text-white text-sm font-medium rounded-lg hover:bg-{{ $accent }}-700 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                             </svg>
@@ -58,7 +96,12 @@
                         @forelse ($users as $user)
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-4 py-3">
-                                    <a href="{{ url('/asset') }}?user_id={{ $user->id }}" class="font-medium text-indigo-600 hover:text-indigo-800 hover:underline">{{ $user->name }}</a>
+                                    @if ($profileLinkUrl)
+                                        <a href="{{ $profileLinkUrl }}?user_id={{ $user->id }}"
+                                            class="font-medium text-{{ $accent }}-600 hover:text-{{ $accent }}-800 hover:underline">{{ $user->name }}</a>
+                                    @else
+                                        <span class="font-medium text-gray-800">{{ $user->name }}</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3">
                                     <span class="text-gray-600">{{ $user->username }}</span>
@@ -76,7 +119,7 @@
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="text-gray-700">{{ $user->accessLevel?->name ?? '—' }}</span>
+                                    <span class="text-gray-700">{{ $user->{$accessRelation}?->name ?? '—' }}</span>
                                 </td>
                                 <td class="px-4 py-3">
                                     <span
@@ -85,21 +128,21 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    @if (auth()->user()->accessLevel?->add_edit_user)
+                                    @if ($canEdit)
                                         <div class="flex items-center gap-2">
                                             <button type="button"
-                                                class="edit-staff-btn inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors"
+                                                class="edit-staff-btn inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-{{ $accent }}-700 bg-{{ $accent }}-50 rounded-md hover:bg-{{ $accent }}-100 transition-colors"
                                                 data-id="{{ $user->id }}" data-name="{{ $user->name }}"
                                                 data-username="{{ $user->username }}"
                                                 data-branches="{{ $user->branches->pluck('id')->join(',') }}"
-                                                data-access-level="{{ $user->asset_access_level_id ?? '' }}">
+                                                data-access-level="{{ $user->{$accessColumn} ?? '' }}">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                 </svg>
                                                 Edit
                                             </button>
 
-                                            <form method="POST" action="{{ route('staff.toggleStatus', $user->id) }}" class="inline">
+                                            <form method="POST" action="{{ route($routes['toggleStatus'], $user->id) }}" class="inline">
                                                 @csrf
                                                 <button type="submit"
                                                     class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-md transition-colors {{ $user->is_active ? 'text-red-700 bg-red-50 hover:bg-red-100' : 'text-green-700 bg-green-50 hover:bg-green-100' }}">
@@ -142,24 +185,24 @@
                     <button type="button" id="close-nologin-modal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
                 </div>
 
-                <form id="nologin-form" method="POST" action="{{ route('staff.registerNoLogin') }}">
+                <form id="nologin-form" method="POST" action="{{ route($routes['registerNoLogin']) }}">
                     @csrf
                     <div class="space-y-5">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
                             <input type="text" name="name" id="nologin-name" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Branches</label>
                             <input type="text" id="nologin-branch-search" placeholder="Search branches..."
-                                class="w-full mb-3 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                class="w-full mb-3 px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500 text-sm">
                             <div class="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-3">
                                 @foreach ($branches as $branch)
                                     <label class="nologin-branch-item flex items-center hover:bg-gray-50 px-2 py-1 rounded cursor-pointer">
                                         <input type="checkbox" name="branch_id[]" value="{{ $branch->id }}"
-                                            class="mr-3 text-indigo-600 focus:ring-indigo-500 rounded">
+                                            class="mr-3 text-{{ $accent }}-600 focus:ring-{{ $accent }}-500 rounded">
                                         <span class="text-sm">{{ $branch->branch_name }}</span>
                                     </label>
                                 @endforeach
@@ -192,7 +235,7 @@
                         class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
                 </div>
 
-                <form id="staff-form" method="POST" action="{{ route('staff.register') }}">
+                <form id="staff-form" method="POST" action="{{ route($routes['register']) }}">
                     @csrf
                     <input type="hidden" name="staff_id" id="staff-id">
 
@@ -200,26 +243,26 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
                             <input type="text" name="name" id="staff-name" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
                             <input type="text" name="username" id="staff-username" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500">
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                             <input type="password" name="password" id="staff-password"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500">
                             <p class="text-xs text-gray-400 mt-1">Leave blank if you don't want to change password.</p>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Access Level</label>
-                            <select name="asset_access_level_id" id="staff-access-level" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500">
+                            <select name="{{ $accessColumn }}" id="staff-access-level" required
+                                class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500">
                                 <option value="">Select Access Level</option>
                                 @foreach ($accessLevels as $level)
                                     <option value="{{ $level->id }}">{{ $level->name }}</option>
@@ -230,13 +273,13 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Branches</label>
                             <input type="text" id="branch-search" placeholder="Search branches..."
-                                class="w-full mb-3 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                class="w-full mb-3 px-4 py-2 border border-gray-300 rounded-md focus:ring-{{ $accent }}-500 focus:border-{{ $accent }}-500 text-sm">
                             <div class="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-md p-3">
                                 @foreach ($branches as $branch)
                                     <label
                                         class="branch-item flex items-center hover:bg-gray-50 px-2 py-1 rounded cursor-pointer">
                                         <input type="checkbox" name="branch_id[]" value="{{ $branch->id }}"
-                                            class="mr-3 text-indigo-600 focus:ring-indigo-500 rounded">
+                                            class="mr-3 text-{{ $accent }}-600 focus:ring-{{ $accent }}-500 rounded">
                                         <span class="text-sm">{{ $branch->branch_name }}</span>
                                     </label>
                                 @endforeach
@@ -244,7 +287,7 @@
                             <p class="text-xs text-gray-400 mt-1">Select multiple branches.</p>
 
                             <!-- Selected branches display -->
-                            <div id="selected-branches" class="mt-3 text-sm text-indigo-600 hidden">
+                            <div id="selected-branches" class="mt-3 text-sm text-{{ $accent }}-600 hidden">
                                 Selected: <span id="selected-branches-list"></span>
                             </div>
                         </div>
@@ -256,7 +299,7 @@
                             Cancel
                         </button>
                         <button type="submit" id="staff-modal-submit"
-                            class="px-6 py-2 bg-indigo-600 text-white font-medium rounded-md hover:bg-indigo-700">
+                            class="px-6 py-2 bg-{{ $accent }}-600 text-white font-medium rounded-md hover:bg-{{ $accent }}-700">
                             Add Staff
                         </button>
                     </div>
@@ -270,104 +313,60 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
     <style>
-        /* DataTables Length (Show entries) Styling */
-        .dataTables_wrapper .dataTables_length {
-            margin-bottom: 1rem;
-        }
-
+        .dataTables_wrapper .dataTables_length { margin-bottom: 1rem; }
         .dataTables_wrapper .dataTables_length label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #4b5563;
-            display: flex;
-            align-items: center;
-            gap: 0rem;
+            font-size: 0.875rem; font-weight: 600; color: #4b5563;
+            display: flex; align-items: center; gap: 0rem;
         }
-
         .dataTables_wrapper .dataTables_length select {
-            margin: 0 0.5rem;
-            padding: 0.5rem 2rem 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            outline: none;
+            margin: 0 0.5rem; padding: 0.5rem 2rem 0.5rem 0.75rem;
+            border: 1px solid #d1d5db; border-radius: 0.5rem;
+            font-size: 0.875rem; transition: all 0.2s; outline: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
             background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.25rem;
-            appearance: none;
+            background-repeat: no-repeat; background-size: 1.25rem; appearance: none;
         }
-
         .dataTables_wrapper .dataTables_length select:focus {
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+            border-color: {{ $accentHexLight }};
+            box-shadow: 0 0 0 3px {{ $accentRing }};
         }
-
-        /* DataTables Search Styling */
-        .dataTables_wrapper .dataTables_filter {
-            margin-bottom: 1rem;
-        }
-
+        .dataTables_wrapper .dataTables_filter { margin-bottom: 1rem; }
         .dataTables_wrapper .dataTables_filter label {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #4b5563;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+            font-size: 0.875rem; font-weight: 600; color: #4b5563;
+            display: flex; align-items: center; gap: 0.75rem;
         }
-
         .dataTables_wrapper .dataTables_filter input {
-            margin-left: 0;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
-            outline: none;
+            margin-left: 0; padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db; border-radius: 0.5rem;
+            font-size: 0.875rem; transition: all 0.2s; outline: none;
         }
-
         .dataTables_wrapper .dataTables_filter input:focus {
-            border-color: #818cf8;
-            ring: 2px;
-            ring-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+            border-color: {{ $accentHexLight }};
+            box-shadow: 0 0 0 3px {{ $accentRing }};
         }
-
-        /* DataTables Info and Pagination Styling */
         .dataTables_wrapper .dataTables_info {
-            font-size: 0.875rem;
-            color: #6b7280;
-            padding-top: 1rem;
+            font-size: 0.875rem; color: #6b7280; padding-top: 1rem;
         }
-
-        .dataTables_wrapper .dataTables_paginate {
-            padding-top: 1rem;
-        }
-
+        .dataTables_wrapper .dataTables_paginate { padding-top: 1rem; }
         .dataTables_wrapper .dataTables_paginate .paginate_button {
-            padding: 0.375rem 0.75rem;
-            margin: 0 0.125rem;
-            border-radius: 0.375rem;
-            font-size: 0.875rem;
-            transition: all 0.2s;
+            padding: 0.375rem 0.75rem; margin: 0 0.125rem;
+            border-radius: 0.375rem; font-size: 0.875rem; transition: all 0.2s;
         }
-
         .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #4f46e5 !important;
+            background: {{ $accentHex }} !important;
             color: white !important;
-            border: 1px solid #4f46e5 !important;
+            border: 1px solid {{ $accentHex }} !important;
         }
-
         .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: #eef2ff !important;
-            color: #4f46e5 !important;
-            border: 1px solid #c7d2fe !important;
+            background: {{ $accentBgLight }} !important;
+            color: {{ $accentHex }} !important;
+            border: 1px solid {{ $accentHexLight }} !important;
         }
     </style>
 
     <script>
+        const staffBasePath = @json($basePath);
+
         const staffModal = document.getElementById('staff-modal');
         const openAddBtn = document.getElementById('add-staff-trigger');
         const closeModalBtns = [document.getElementById('close-staff-modal'), document.getElementById(
@@ -411,7 +410,7 @@
         if (openAddBtn) {
             openAddBtn.addEventListener('click', () => {
                 staffForm.reset();
-                staffForm.action = "{{ route('staff.register') }}";
+                staffForm.action = "{{ route($routes['register']) }}";
                 modalTitle.textContent = "Add New Staff";
                 submitBtn.textContent = "Add Staff";
                 branchSearch.value = ''; // Clear search
@@ -443,7 +442,7 @@
                 // No-login staff (no username) → open no-login modal
                 if (!username) {
                     document.getElementById('nologin-form').reset();
-                    document.getElementById('nologin-form').action = `/staff/${id}/update-no-login`;
+                    document.getElementById('nologin-form').action = `${staffBasePath}/${id}/update-no-login`;
                     document.getElementById('nologin-modal-title').textContent = 'Edit Staff (No Login)';
                     document.getElementById('nologin-submit-btn').textContent = 'Update Staff';
                     document.getElementById('nologin-name').value = name;
@@ -458,7 +457,7 @@
                 }
 
                 staffForm.reset();
-                staffForm.action = `/staff/${id}/update`;
+                staffForm.action = `${staffBasePath}/${id}/update`;
                 modalTitle.textContent = "Edit Staff";
                 submitBtn.textContent = "Update Staff";
 
@@ -487,7 +486,7 @@
         document.getElementById('add-nologin-trigger')?.addEventListener('click', () => {
             const form = document.getElementById('nologin-form');
             form.reset();
-            form.action = "{{ route('staff.registerNoLogin') }}";
+            form.action = "{{ route($routes['registerNoLogin']) }}";
             document.getElementById('nologin-modal-title').textContent = 'Add Staff (No Login)';
             document.getElementById('nologin-submit-btn').textContent = 'Add Staff';
             noLoginBranchSearch.value = '';

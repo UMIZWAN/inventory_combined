@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Asset;
 
+use App\Http\Controllers\Controller;
 use App\Models\AssetTransfer;
 use App\Models\Asset;
 use App\Models\Branch;

@@ -1,4 +1,30 @@
-@extends('layouts.app')
+@php
+    $module ??= 'asset';
+
+    if ($module === 'marketing') {
+        $routePrefix      = 'marketingAccessLevels';
+        $basePath         = '/marketing/access-levels';
+        $canEdit          = auth()->user()?->marketingAccessLevel?->add_edit_role;
+        $accent           = 'emerald';
+        $accentHex        = '#059669';
+        $accentHexHover   = '#047857';
+        $accentHexLight   = '#a7f3d0';
+        $accentBgLight    = '#ecfdf5';
+        $accentRing       = 'rgba(16, 185, 129, 0.1)';
+    } else {
+        $routePrefix      = 'accessLevels';
+        $basePath         = '/access-levels';
+        $canEdit          = auth()->user()?->accessLevel?->add_edit_access;
+        $accent           = 'indigo';
+        $accentHex        = '#4f46e5';
+        $accentHexHover   = '#4338ca';
+        $accentHexLight   = '#c7d2fe';
+        $accentBgLight    = '#eef2ff';
+        $accentRing       = 'rgba(129, 140, 248, 0.1)';
+    }
+@endphp
+
+@extends('layouts.app', ['module' => $module])
 
 @section('content')
     <div class="px-4">
@@ -10,9 +36,9 @@
                     <h3 class="ml-2 text-xl font-semibold text-gray-800">Access Levels</h3>
                     <p class="ml-2 mt-1 text-sm text-gray-500">Manage access levels and permissions.</p>
                 </div>
-                @if (auth()->user()->accessLevel?->add_edit_access)
+                @if ($canEdit)
                     <button onclick="openAddModal()"
-                        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-{{ $accent }}-600 text-white text-sm font-medium rounded-lg hover:bg-{{ $accent }}-700 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
@@ -31,7 +57,7 @@
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Access Name</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Permissions Count</th>
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Users Assigned</th>
-                            @if (auth()->user()->accessLevel?->add_edit_access)
+                            @if ($canEdit)
                                 <th class="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Order</th>
                             @endif
                             <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
@@ -53,7 +79,7 @@
                                         {{ $accessLevel->users_count }} {{ Str::plural('user', $accessLevel->users_count) }}
                                     </span>
                                 </td>
-                                @if (auth()->user()->accessLevel?->add_edit_access)
+                                @if ($canEdit)
                                     <td class="px-4 py-3">
                                         <div class="flex items-center justify-center gap-1">
                                             <button onclick="moveRow({{ $accessLevel->id }}, 'up')"
@@ -83,15 +109,15 @@
                                             </svg>
                                             View
                                         </button>
-                                        @if (auth()->user()->accessLevel?->add_edit_access)
+                                        @if ($canEdit)
                                             <button onclick='openEditModal(@json($accessLevel))'
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-md hover:bg-indigo-100 transition-colors">
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-{{ $accent }}-700 bg-{{ $accent }}-50 rounded-md hover:bg-{{ $accent }}-100 transition-colors">
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                                                 </svg>
                                                 Edit
                                             </button>
-                                            <form action="{{ route('accessLevels.duplicate', $accessLevel->id) }}"
+                                            <form action="{{ route("$routePrefix.duplicate", $accessLevel->id) }}"
                                                 method="POST" class="inline">
                                                 @csrf
                                                 <button type="submit"
@@ -102,7 +128,7 @@
                                                     Duplicate
                                                 </button>
                                             </form>
-                                            <form action="{{ route('accessLevels.destroy', $accessLevel->id) }}" method="POST"
+                                            <form action="{{ route("$routePrefix.destroy", $accessLevel->id) }}" method="POST"
                                                 class="inline"
                                                 onsubmit="return confirm('Are you sure you want to delete this access level?')">
                                                 @csrf
@@ -121,7 +147,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ auth()->user()->accessLevel?->add_edit_access ? 5 : 4 }}" class="px-4 py-10 text-center text-gray-400">
+                                <td colspan="{{ $canEdit ? 5 : 4 }}" class="px-4 py-10 text-center text-gray-400">
                                     No access levels found.
                                 </td>
                             </tr>
@@ -136,12 +162,12 @@
     <div id="addModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 overflow-auto">
         <div class="bg-white w-full max-w-3xl rounded shadow p-6 mx-4 my-8">
             <h3 class="text-lg font-semibold mb-4">Add Access Level</h3>
-            <form action="{{ route('accessLevels.store') }}" method="POST">
+            <form action="{{ route("$routePrefix.store") }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label class="block font-medium mb-1">Access Level Name <span class="text-red-500">*</span></label>
                     <input type="text" name="name" required
-                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-{{ $accent }}-500"
                         placeholder="e.g., Admin, Manager, Staff">
                 </div>
                 <div class="mb-4">
@@ -150,7 +176,7 @@
                         @foreach ($permissions as $field => $label)
                             <label class="flex items-center space-x-2 hover:bg-gray-50 p-2 rounded cursor-pointer">
                                 <input type="checkbox" name="{{ $field }}" value="1"
-                                    class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    class="w-4 h-4 text-{{ $accent }}-600 rounded focus:ring-2 focus:ring-{{ $accent }}-500">
                                 <span class="text-sm">{{ $label }}</span>
                             </label>
                         @endforeach
@@ -161,7 +187,7 @@
                         class="px-4 py-2 border rounded text-sm hover:bg-gray-50">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                    <button type="submit" class="px-4 py-2 bg-{{ $accent }}-600 text-white rounded text-sm hover:bg-{{ $accent }}-700">
                         Create Access Level
                     </button>
                 </div>
@@ -179,7 +205,7 @@
                 <div class="mb-4">
                     <label class="block font-medium mb-1">Access Level Name <span class="text-red-500">*</span></label>
                     <input type="text" name="name" id="editName" required
-                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-{{ $accent }}-500">
                 </div>
                 <div class="mb-4">
                     <label class="block font-medium mb-3">Permissions</label>
@@ -189,7 +215,7 @@
                             <label class="flex items-center space-x-2 hover:bg-gray-50 p-2 rounded cursor-pointer">
                                 <input type="checkbox" name="{{ $field }}" value="1"
                                     id="edit_{{ $field }}"
-                                    class="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                                    class="w-4 h-4 text-{{ $accent }}-600 rounded focus:ring-2 focus:ring-{{ $accent }}-500">
                                 <span class="text-sm">{{ $label }}</span>
                             </label>
                         @endforeach
@@ -200,7 +226,7 @@
                         class="px-4 py-2 border rounded text-sm hover:bg-gray-50">
                         Cancel
                     </button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">
+                    <button type="submit" class="px-4 py-2 bg-{{ $accent }}-600 text-white rounded text-sm hover:bg-{{ $accent }}-700">
                         Update Access Level
                     </button>
                 </div>
@@ -264,8 +290,8 @@
             appearance: none;
         }
         .dataTables_wrapper .dataTables_length select:focus {
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+            border-color: {{ $accentHexLight }};
+            box-shadow: 0 0 0 3px {{ $accentRing }};
         }
         .dataTables_wrapper .dataTables_filter {
             margin-bottom: 1rem;
@@ -288,8 +314,8 @@
             outline: none;
         }
         .dataTables_wrapper .dataTables_filter input:focus {
-            border-color: #818cf8;
-            box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+            border-color: {{ $accentHexLight }};
+            box-shadow: 0 0 0 3px {{ $accentRing }};
         }
         .dataTables_wrapper .dataTables_info {
             font-size: 0.875rem;
@@ -307,18 +333,20 @@
             transition: all 0.2s;
         }
         .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: #4f46e5 !important;
+            background: {{ $accentHex }} !important;
             color: white !important;
-            border: 1px solid #4f46e5 !important;
+            border: 1px solid {{ $accentHex }} !important;
         }
         .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-            background: #eef2ff !important;
-            color: #4f46e5 !important;
-            border: 1px solid #c7d2fe !important;
+            background: {{ $accentBgLight }} !important;
+            color: {{ $accentHex }} !important;
+            border: 1px solid {{ $accentHexLight }} !important;
         }
     </style>
 
     <script>
+        const accessLevelBasePath = @json($basePath);
+
         function openAddModal() {
             document.getElementById('addModal').classList.remove('hidden');
             document.getElementById('addModal').classList.add('flex');
@@ -332,7 +360,7 @@
         function openEditModal(accessLevel) {
             const modal = document.getElementById('editModal');
             const form = document.getElementById('editForm');
-            form.action = `/access-levels/${accessLevel.id}`;
+            form.action = `${accessLevelBasePath}/${accessLevel.id}`;
             document.getElementById('editName').value = accessLevel.name;
             document.querySelectorAll('#editPermissions input[type="checkbox"]').forEach(cb => {
                 cb.checked = false;
@@ -404,7 +432,7 @@
                 order: [],
                 columnDefs: [
                     { orderable: false, targets: -1 },
-                    @if(auth()->user()->accessLevel?->add_edit_access)
+                    @if ($canEdit)
                     { orderable: false, targets: -2 },
                     @endif
                 ],
@@ -429,7 +457,7 @@
                 return;
             }
 
-            fetch('{{ route("accessLevels.reorder") }}', {
+            fetch(@json(route("$routePrefix.reorder")), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

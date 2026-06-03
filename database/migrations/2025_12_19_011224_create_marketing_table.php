@@ -11,43 +11,39 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('inventory_marketing_tag', function (Blueprint $table) {
-        //     $table->id();
-        //     $table->string('name');
-        //     $table->timestamps();
-        // });
-
         Schema::create('inventory_marketing_category', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->timestamps();
         });
+
         Schema::create('inventory_marketing_items', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('asset_running_number')->unique();
-            $table->text('asset_description')->nullable();
-            $table->string('asset_type')->nullable();
-            $table->foreignId('asset_category_id')->constrained('assets_category')->cascadeOnDelete();
-            $table->foreignId('asset_tag_id')->nullable()->constrained('assets_tag')->cascadeOnDelete();
-            $table->unsignedInteger('asset_stable_unit')->default(0);
-            $table->decimal('asset_purchase_cost', 12, 4)->nullable();
-            $table->decimal('asset_sales_cost', 12, 4)->nullable();
-            $table->string('asset_unit_measure');
-            $table->string('asset_image')->nullable();
-            $table->text('assets_remark')->nullable();
-            $table->json('assets_log')->nullable();
+            $table->string('item_running_number')->unique();
+            $table->text('description')->nullable();
+            $table->string('type')->nullable();
+            $table->foreignId('category_id')->constrained('inventory_marketing_category')->cascadeOnDelete();
+            $table->unsignedInteger('stable_unit')->default(0);
+            $table->decimal('purchase_cost', 12, 4)->nullable();
+            $table->decimal('sales_cost', 12, 4)->nullable();
+            $table->string('unit_measure');
+            $table->string('image')->nullable();
+            $table->text('remark')->nullable();
+            $table->json('log')->nullable();
             $table->timestamps();
         });
 
-        Schema::create('marketing_item_values', function (Blueprint $table) {
+        Schema::create('inventory_marketing_item_values', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('asset_id')->constrained('assets')->cascadeOnDelete();
-            $table->foreignId('asset_branch_id')->constrained('assets_branch')->cascadeOnDelete();
-            $table->string('asset_rack_no')->nullable();
-            $table->unique(['asset_id', 'asset_branch_id']);
-            $table->foreignId('asset_location_id')->nullable()->constrained('assets_branch')->cascadeOnDelete();
-            $table->unsignedInteger('asset_current_unit')->default(0);
+            $table->foreignId('item_id')->constrained('inventory_marketing_items')->cascadeOnDelete();
+            $table->foreignId('branch_id')->constrained('branches')->cascadeOnDelete();
+            $table->string('rack_no')->nullable();
+            $table->unique(['item_id', 'branch_id']);
+            $table->foreignId('location_id')->nullable()->constrained('branches')->cascadeOnDelete();
+            $table->unsignedInteger('current_unit')->default(0);
+            $table->json('log')->nullable();
+            $table->timestamps();
         });
     }
 
@@ -56,6 +52,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-
+        Schema::dropIfExists('inventory_marketing_item_values');
+        Schema::dropIfExists('inventory_marketing_items');
+        Schema::dropIfExists('inventory_marketing_category');
     }
 };
