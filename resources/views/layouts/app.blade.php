@@ -118,6 +118,35 @@
             @auth
                 <div class="flex items-center gap-3">
 
+                    {{-- Branch Selector (marketing only) --}}
+                    @if ($module === 'marketing')
+                        @php
+                            $userBranches = auth()->user()->branches;
+                            $branchOptions = $userBranches->isNotEmpty()
+                                ? $userBranches
+                                : \App\Models\Branch::where('is_active', true)->orderBy('branch_name')->get();
+                            $activeBranchId = session('marketing_branch_id');
+                        @endphp
+
+                        <form method="POST" action="{{ url('/marketing/set-branch') }}"
+                            class="flex items-center gap-1.5">
+                            @csrf
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            <select name="branch_id" onchange="this.form.submit()"
+                                class="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white focus:ring-emerald-500 focus:border-emerald-500 focus:outline-none">
+                                <option value="">All Branches</option>
+                                @foreach ($branchOptions as $b)
+                                    <option value="{{ $b->id }}" {{ (int) $activeBranchId === (int) $b->id ? 'selected' : '' }}>
+                                        {{ $b->branch_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    @endif
+
                     {{-- Profile Trigger --}}
                     <button id="profile-trigger"
                         class="text-sm text-gray-700 hover:text-{{ $accent }}-600 font-medium transition-colors">
@@ -270,11 +299,26 @@
 
     {{-- ================= MODAL SCRIPT ================= --}}
     <script>
-        const modal = document.getElementById('profile-modal');
+    (function () {
+        const profileModal = document.getElementById('profile-modal');
+        const profileTrigger = document.getElementById('profile-trigger');
 
-        document.getElementById('profile-trigger').addEventListener('click', e => {
+        if (!profileModal || !profileTrigger) return;
+
+        function closeProfileModal() {
+            profileModal.classList.add('hidden');
+        }
+
+        profileTrigger.addEventListener('click', e => {
             e.preventDefault();
-            modal.classList.remove('hidden');
+            profileModal.classList.remove('hidden');
+        });
+
+        document.getElementById('close-modal')?.addEventListener('click', closeProfileModal);
+        document.getElementById('close-modal-bottom')?.addEventListener('click', closeProfileModal);
+
+        profileModal.addEventListener('click', e => {
+            if (e.target === profileModal) closeProfileModal();
         });
 
         document.querySelectorAll('.fade-out').forEach(el => {
@@ -284,17 +328,7 @@
                 setTimeout(() => el.remove(), 500);
             }, 2000);
         });
-
-        document.getElementById('close-modal').addEventListener('click', closeModal);
-        document.getElementById('close-modal-bottom').addEventListener('click', closeModal);
-
-        modal.addEventListener('click', e => {
-            if (e.target === modal) closeModal();
-        });
-
-        function closeModal() {
-            modal.classList.add('hidden');
-        }
+    })();
 
         function updateTime() {
             const now = new Date();

@@ -29,7 +29,7 @@ class ImportCsvController extends Controller
             return redirect()->back()->with('error', 'You do not have permission to import CSV');
         }
 
-        return view('import.index', [
+        return view('assetModule.import.index', [
             'groups' => AssetGroup::where('is_deleted', false)->get(),
             'branches' => Branch::where('is_active', true)->get(),
             'suppliers' => Supplier::where('is_deleted', false)->get(),
@@ -147,7 +147,7 @@ class ImportCsvController extends Controller
         session(['csv_import_data' => $data]);
         session(['csv_import_headers' => $headers]);
 
-        return view('import.preview', [
+        return view('assetModule.import.preview', [
             'data' => $data,
             'headers' => $headers,
             'validationErrors' => $validationErrors,

@@ -249,122 +249,28 @@
         </div>
     @endif
 
-    {{-- Add/Edit Modal --}}
-    <div id="item-modal" class="fixed inset-0 hidden items-start justify-center bg-black/50 backdrop-blur-sm z-50 overflow-y-auto py-10">
-        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4">
-            <div class="p-6">
-                <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>
-                        </div>
-                        <h2 id="item-modal-title" class="text-xl font-bold text-gray-900">Add Item</h2>
-                    </div>
-                    <button id="close-item-modal" class="text-gray-400 hover:text-gray-600">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
+    {{-- Add/Edit Modal — layout mirrors asset masterList edit form --}}
+    <div id="item-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 overflow-auto">
+        <div class="bg-white w-full max-w-5xl rounded shadow p-6 mx-4 my-8 relative">
+            <h3 id="item-modal-title" class="text-lg font-semibold mb-4">Add Item</h3>
 
-                <form id="item-form" method="POST" action="{{ url('/marketing/items') }}" enctype="multipart/form-data">
-                    @csrf
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Name <span class="text-red-500">*</span></label>
-                            <input type="text" name="name" id="item-name" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Item Number <span class="text-red-500">*</span></label>
-                            <input type="text" name="item_running_number" id="item-running-number" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                placeholder="MKT-0001">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
-                            <select name="category_id" id="item-category" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                                <option value="">Select category</option>
-                                @foreach ($categories as $cat)
-                                    <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Type</label>
-                            <input type="text" name="type" id="item-type"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                placeholder="e.g. Banner, Brochure">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Unit of Measure <span class="text-red-500">*</span></label>
-                            <input type="text" name="unit_measure" id="item-uom" required
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                                placeholder="pcs, box, roll">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Purchase Cost</label>
-                            <input type="number" step="0.0001" min="0" name="purchase_cost" id="item-purchase-cost"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Sales Cost</label>
-                            <input type="number" step="0.0001" min="0" name="sales_cost" id="item-sales-cost"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Stable Unit (min stock)</label>
-                            <input type="number" min="0" name="stable_unit" id="item-stable-unit" value="0"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Description</label>
-                            <textarea name="description" id="item-description" rows="2"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"></textarea>
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Remark</label>
-                            <textarea name="remark" id="item-remark" rows="2"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"></textarea>
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label class="block text-sm font-semibold text-gray-700 mb-1">Image</label>
-                            <input type="file" name="image" accept="image/*"
-                                class="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
-                            <div id="current-image-display" class="mt-2 hidden">
-                                <span class="text-xs text-gray-500">Current image: </span>
-                                <img id="current-image" src="" class="mt-1 w-20 h-20 object-cover rounded border border-gray-200">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200">
-                        <button type="button" id="cancel-item-modal"
-                            class="px-5 py-2.5 text-gray-700 font-medium border border-gray-300 rounded-lg hover:bg-gray-50">
-                            Cancel
-                        </button>
-                        <button type="submit" id="item-submit"
-                            class="px-5 py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700 shadow-sm">
-                            Add Item
-                        </button>
-                    </div>
-                </form>
+            {{-- Error container --}}
+            <div id="itemFormErrors"
+                class="hidden mb-4 px-4 py-3 rounded-md bg-red-100 border border-red-400 text-red-800">
+                <ul class="list-disc list-inside text-sm" id="itemFormErrorList"></ul>
             </div>
+
+            <form id="item-form" method="POST" action="{{ url('/marketing/items') }}" enctype="multipart/form-data">
+                @csrf
+                @include('marketingModule.item.partials.form')
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button type="button" id="cancel-item-modal"
+                        class="px-4 py-2 text-sm border rounded">Cancel</button>
+                    <button type="submit" id="item-submit"
+                        class="px-4 py-2 bg-emerald-600 text-white text-sm rounded">Save</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -423,18 +329,18 @@
     </style>
 
     <script>
+    (function () {
         const modal = document.getElementById('item-modal');
         const openBtn = document.getElementById('add-item-trigger');
-        const closeBtns = [
-            document.getElementById('close-item-modal'),
-            document.getElementById('cancel-item-modal'),
-        ];
+        const cancelBtn = document.getElementById('cancel-item-modal');
 
         const form = document.getElementById('item-form');
         const title = document.getElementById('item-modal-title');
         const submitBtn = document.getElementById('item-submit');
-        const currentImageWrap = document.getElementById('current-image-display');
-        const currentImage = document.getElementById('current-image');
+        const imagePlaceholder = document.getElementById('imagePlaceholder');
+        const existingImageContainer = document.getElementById('existingImageContainer');
+        const existingImage = document.getElementById('existingImage');
+        const replaceImageText = document.getElementById('replaceImageText');
 
         function openModal() {
             modal.classList.remove('hidden');
@@ -454,13 +360,16 @@
                 resetMethodSpoof();
                 form.action = '/marketing/items';
                 title.textContent = 'Add Item';
-                submitBtn.textContent = 'Add Item';
-                currentImageWrap.classList.add('hidden');
+                submitBtn.textContent = 'Save';
+                // Add mode: show placeholder, hide existing image
+                imagePlaceholder.classList.remove('hidden');
+                existingImageContainer.classList.add('hidden');
+                replaceImageText.classList.add('hidden');
                 openModal();
             });
         }
 
-        closeBtns.forEach(btn => btn?.addEventListener('click', closeModal));
+        cancelBtn?.addEventListener('click', closeModal);
         modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
         function openEditModal(item) {
@@ -468,7 +377,7 @@
             resetMethodSpoof();
             form.action = `/marketing/items/${item.id}`;
             title.textContent = 'Edit Item';
-            submitBtn.textContent = 'Update Item';
+            submitBtn.textContent = 'Update';
 
             document.getElementById('item-name').value = item.name ?? '';
             document.getElementById('item-running-number').value = item.item_running_number ?? '';
@@ -481,11 +390,16 @@
             document.getElementById('item-description').value = item.description ?? '';
             document.getElementById('item-remark').value = item.remark ?? '';
 
+            // Edit mode: hide placeholder, show existing image (if any), show replace hint
             if (item.image) {
-                currentImage.src = `/storage/${item.image}`;
-                currentImageWrap.classList.remove('hidden');
+                existingImage.src = `/storage/${item.image}`;
+                existingImageContainer.classList.remove('hidden');
+                imagePlaceholder.classList.add('hidden');
+                replaceImageText.classList.remove('hidden');
             } else {
-                currentImageWrap.classList.add('hidden');
+                existingImageContainer.classList.add('hidden');
+                imagePlaceholder.classList.remove('hidden');
+                replaceImageText.classList.add('hidden');
             }
 
             form.insertAdjacentHTML('beforeend', '<input type="hidden" name="_method" value="PUT">');
@@ -670,5 +584,6 @@
                 }
             });
         });
+    })();
     </script>
 @endsection

@@ -84,7 +84,7 @@ class ReportController extends Controller
 
         $branches = Branch::where('is_active', true)->get();
 
-        return view('report.index', [
+        return view('assetModule.report.index', [
             'fromDate' => $fromDate,
             'toDate' => $toDate,
             'branchId' => $branchId,

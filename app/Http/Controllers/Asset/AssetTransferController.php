@@ -83,7 +83,7 @@ class AssetTransferController extends Controller
 
         $totalActionCount = $pendingApprovalCount + $toSendCount + $toReceiveCount;
 
-        return view('asset_transfer.index', compact(
+        return view('assetModule.asset_transfer.index', compact(
             'transfers',
             'branches',
             'pendingApprovalCount',
@@ -117,7 +117,7 @@ class AssetTransferController extends Controller
             })->get();
         $departments = \App\Models\Department::where('is_active', true)->get();
 
-        return view('asset_transfer.show', compact('transfer', 'shippingOptions', 'toBranchUsers', 'departments'));
+        return view('assetModule.asset_transfer.show', compact('transfer', 'shippingOptions', 'toBranchUsers', 'departments'));
     }
 
 
@@ -467,7 +467,7 @@ class AssetTransferController extends Controller
             }
         ])->findOrFail($id);
 
-        $pdf = Pdf::loadView('asset_transfer.pdf', compact('transfer'));
+        $pdf = Pdf::loadView('assetModule.asset_transfer.pdf', compact('transfer'));
 
         return $pdf->download('TransferNote_' . $transfer->transfer_running_no . '.pdf');
     }

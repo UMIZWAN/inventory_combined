@@ -19,7 +19,7 @@ class MarketingCategoryController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('marketing.category.list', compact('categories'));
+        return view('marketingModule.category.list', compact('categories'));
     }
 
     public function store(Request $request)

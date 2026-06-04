@@ -94,7 +94,7 @@ class AssetController extends Controller
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        return view('asset.masterList', [
+        return view('assetModule.asset.masterList', [
             'assets' => $assets,
             'groups' => AssetGroup::where('is_deleted', false)->get(),
             'branches' => Branch::where('is_active', true)
@@ -548,7 +548,7 @@ class AssetController extends Controller
 
         $assets = $query->orderBy('dispose_date', 'desc')->get();
 
-        return view('asset.disposalList', [
+        return view('assetModule.asset.disposalList', [
             'assets' => $assets,
             'filters' => $request->all(),
         ]);
@@ -590,7 +590,7 @@ class AssetController extends Controller
         $asset = Asset::with(['branch', 'group', 'supplier'])
             ->findOrFail($id);
 
-        return view('asset.view', [
+        return view('assetModule.asset.view', [
             'asset' => $asset
         ]);
     }

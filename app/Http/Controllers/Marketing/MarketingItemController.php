@@ -27,7 +27,7 @@ class MarketingItemController extends Controller
 
         $categories = MarketingCategory::orderBy('name')->get();
 
-        return view('marketing.item.list', compact('items', 'categories'));
+        return view('marketingModule.item.list', compact('items', 'categories'));
     }
 
     public function store(Request $request)

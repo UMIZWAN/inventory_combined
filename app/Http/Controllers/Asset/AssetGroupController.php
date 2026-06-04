@@ -20,7 +20,7 @@ class AssetGroupController extends Controller
 
         $assetGroups = AssetGroup::orderBy('name')->where('is_deleted', false)->get();
 
-        return view('assetgroup.list', compact('assetGroups'));
+        return view('assetModule.assetgroup.list', compact('assetGroups'));
     }
 
     /**

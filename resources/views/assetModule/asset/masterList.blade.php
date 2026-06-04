@@ -687,7 +687,7 @@
 
             <form id="addForm" action="{{ route('asset.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                @include('asset.partials.form', ['asset' => null, 'isEdit' => false])
+                @include('assetModule.asset.partials.form', ['asset' => null, 'isEdit' => false])
                 <div class="flex justify-end gap-2 mt-4">
                     <button type="button" onclick="closeAddModal()"
                         class="px-4 py-2 text-sm border rounded">Cancel</button>
@@ -713,7 +713,7 @@
             <form id="editForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                @include('asset.partials.form', ['asset' => null, 'isEdit' => true])
+                @include('assetModule.asset.partials.form', ['asset' => null, 'isEdit' => true])
                 <div class="flex justify-end gap-2 mt-4">
                     <button type="button" onclick="closeEditModal()"
                         class="px-4 py-2 text-sm border rounded">Cancel</button>
@@ -820,7 +820,7 @@
                 <input type="hidden" name="asset_ids" id="assetIdsInput">
 
                 {{-- ONLY transfer fields --}}
-                @include('asset.partials.transfer')
+                @include('assetModule.asset.partials.transfer')
 
                 <div class="flex justify-end gap-2 mt-4">
                     <button type="button" onclick="closeTransferModal()" class="px-4 py-2 text-sm border rounded">

@@ -35,7 +35,7 @@ class AmsFormController extends Controller
             ->paginate(9)
             ->withQueryString();
 
-        return view('amsForms.index', compact('forms'));
+        return view('assetModule.amsForms.index', compact('forms'));
     }
 
     /**

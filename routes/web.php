@@ -13,6 +13,11 @@ use App\Http\Controllers\Marketing\MarketingAccessLevelController;
 use App\Http\Controllers\Marketing\MarketingStaffController;
 use App\Http\Controllers\Marketing\MarketingBranchController;
 use App\Http\Controllers\Marketing\MarketingCategoryController;
+use App\Http\Controllers\Marketing\BranchSelectorController;
+use App\Http\Controllers\Marketing\MarketingTransactionPurposeController;
+use App\Http\Controllers\Marketing\MarketingShippingOptionController;
+use App\Http\Controllers\Marketing\MarketingTransactionController;
+use App\Http\Controllers\Marketing\MarketingReportController;
 
 /**
  *  AUTH CONTROLLER
@@ -99,6 +104,9 @@ Route::prefix('supplier')->group(function () {
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+// Marketing topbar branch switcher
+Route::post('/marketing/set-branch', [BranchSelectorController::class, 'set'])->name('marketing.setBranch');
+
 // Marketing Items — landing page for MIS
 Route::get('/marketing', [MarketingItemController::class, 'index'])->name('marketing.items.index');
 Route::post('/marketing/items', [MarketingItemController::class, 'store'])->name('marketing.items.store');
@@ -192,6 +200,39 @@ Route::prefix('marketing/categories')->name('marketingCategories.')->group(funct
     Route::put('/{id}', [MarketingCategoryController::class, 'update'])->name('update');
     Route::delete('/{id}', [MarketingCategoryController::class, 'destroy'])->name('destroy');
 });
+
+// Transaction Purpose Routes — Marketing
+Route::prefix('marketing/transaction-purposes')->name('marketingTransactionPurposes.')->group(function () {
+    Route::get('/', [MarketingTransactionPurposeController::class, 'index'])->name('index');
+    Route::post('/', [MarketingTransactionPurposeController::class, 'store'])->name('store');
+    Route::put('/{id}', [MarketingTransactionPurposeController::class, 'update'])->name('update');
+    Route::delete('/{id}', [MarketingTransactionPurposeController::class, 'destroy'])->name('destroy');
+});
+
+// Shipping Option Routes — Marketing
+Route::prefix('marketing/shipping-options')->name('marketingShippingOptions.')->group(function () {
+    Route::get('/', [MarketingShippingOptionController::class, 'index'])->name('index');
+    Route::post('/', [MarketingShippingOptionController::class, 'store'])->name('store');
+    Route::put('/{id}', [MarketingShippingOptionController::class, 'update'])->name('update');
+    Route::delete('/{id}', [MarketingShippingOptionController::class, 'destroy'])->name('destroy');
+});
+
+// Transactions — Marketing (tabbed page)
+Route::post('/marketing/transactions/request', [MarketingTransactionController::class, 'storeRequest'])
+    ->name('marketingTransactions.storeRequest');
+Route::post('/marketing/transactions/transfer', [MarketingTransactionController::class, 'storeTransfer'])
+    ->name('marketingTransactions.storeTransfer');
+Route::post('/marketing/transactions/invoice', [MarketingTransactionController::class, 'storeInvoice'])
+    ->name('marketingTransactions.storeInvoice');
+Route::get('/marketing/transactions/{tab?}', [MarketingTransactionController::class, 'index'])
+    ->name('marketingTransactions.index')
+    ->where('tab', 'marketing-in|transfer-list|request|transfer|invoice');
+
+// Reports — Marketing
+Route::get('/marketing/reports/in-out-history', [MarketingReportController::class, 'inOutHistory'])
+    ->name('marketingReports.inOutHistory');
+Route::get('/marketing/reports/invoice', [MarketingReportController::class, 'invoice'])
+    ->name('marketingReports.invoice');
 
 // Branch Routes — Marketing
 Route::prefix('marketing/branches')->name('marketingBranches.')->group(function () {
