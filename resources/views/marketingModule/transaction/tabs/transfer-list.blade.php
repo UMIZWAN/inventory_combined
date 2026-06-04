@@ -159,7 +159,8 @@
                         </td>
                         <td class="px-4 py-3">
                             <button type="button"
-                                class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50">
+                                class="view-txn-btn inline-flex items-center gap-1 px-3 py-1 text-xs font-medium text-blue-600 border border-blue-200 rounded hover:bg-blue-50"
+                                data-id="{{ $txn->id }}">
                                 View
                             </button>
                         </td>
@@ -175,3 +176,5 @@
         </table>
     </div>
 </div>
+
+@include('marketingModule.transaction.partials.detail-modal')

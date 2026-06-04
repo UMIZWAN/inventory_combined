@@ -224,6 +224,15 @@ Route::post('/marketing/transactions/transfer', [MarketingTransactionController:
     ->name('marketingTransactions.storeTransfer');
 Route::post('/marketing/transactions/invoice', [MarketingTransactionController::class, 'storeInvoice'])
     ->name('marketingTransactions.storeInvoice');
+
+// Detail / workflow endpoints — numeric IDs only so they don't clash with tab strings
+Route::get('/marketing/transactions/{id}/detail', [MarketingTransactionController::class, 'show'])
+    ->name('marketingTransactions.show')
+    ->where('id', '[0-9]+');
+Route::post('/marketing/transactions/{id}/status', [MarketingTransactionController::class, 'update'])
+    ->name('marketingTransactions.update')
+    ->where('id', '[0-9]+');
+
 Route::get('/marketing/transactions/{tab?}', [MarketingTransactionController::class, 'index'])
     ->name('marketingTransactions.index')
     ->where('tab', 'marketing-in|transfer-list|request|transfer|invoice');
